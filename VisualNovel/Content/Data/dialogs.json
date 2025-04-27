@@ -7,6 +7,7 @@
                     "speaker": "Девушка",
                     "text": "Привет! Ты новый сотрудник?",
                     "characterImage": "character_girl",
+                    "backgroundImage": "background_1",
                     "nextDialog": "girl_question"
                 }
             ]
@@ -18,14 +19,23 @@
                     "speaker": "Девушка",
                     "text": "Как тебе наша компания?",
                     "characterImage": "character_girl",
+                    "backgroundImage": "background_2",
                     "options": [
                         {
                             "text": "Очень нравится!",
-                            "nextDialog": "positive_reply"
+                            "nextDialog": "positive_reply",
+                            "statChanges": {
+                                "charisma": 1,
+                                "reputation": 2
+                            }  
                         },
                         {
                             "text": "Пока не понял...",
-                            "nextDialog": "negative_reply"
+                            "nextDialog": "negative_reply",
+                            "statChanges": {
+                                "charisma": 1,
+                                "reputation": 2
+                            }
                         }
                     ]
                 }
@@ -38,6 +48,7 @@
                     "speaker": "Мужчина",
                     "text": "Рад слышать! Держи бонус.",
                     "characterImage": "character_man",
+                    "backgroundImage": "background_1",
                     "nextDialog": "end"
                 }
             ]
@@ -49,6 +60,7 @@
                     "speaker": "Мужчина",
                     "text": "Ничего, скоро привыкнешь.",
                     "characterImage": "character_man",
+                    "backgroundImage": "background_2",
                     "nextDialog": "end"
                 }
             ]

@@ -9,10 +9,48 @@ using System.Linq;
 
 namespace VisualNovel
 {
+    public class Stats
+    {
+        public int Charisma { get; set; } = 0;
+        public int Intelligence { get; set; } = 0;
+        public int Reputation { get; set; } = 0;
+
+        public void ApplyChanges(Dictionary<string, int> changes)
+        {
+            foreach (var kvp in changes)
+            {
+                switch (kvp.Key.ToLower())
+                {
+                    case "charisma": Charisma += kvp.Value; break;
+                    case "intelligence": Intelligence += kvp.Value; break;
+                    case "reputation": Reputation += kvp.Value; break;
+                }
+            }
+        }
+        public bool MeetsRequirements(Dictionary<string, int> requirements)
+        {
+            foreach (var kvp in requirements)
+            {
+                int current = kvp.Key.ToLower() switch
+                {
+                    "charisma" => Charisma,
+                    "intelligence" => Intelligence,
+                    "reputation" => Reputation,
+                    _ => 0
+                };
+
+                if (current < kvp.Value)
+                    return false;
+            }
+            return true;
+        }
+    }
     public class DialogOption
     {
         public string Text { get; set; }
         public string NextDialog { get; set; }
+        public Dictionary<string, int> StatChanges { get; set; } = new(); //статы
+        public Dictionary<string, int> Requirements { get; set; } = new(); // условия
     }
 
     public class DialogLineData
@@ -20,6 +58,7 @@ namespace VisualNovel
         public string Speaker { get; set; }
         public string Text { get; set; }
         public string CharacterImage { get; set; }
+        public string BackgroundImage { get; set; }
         public string NextDialog { get; set; }
         public List<DialogOption> Options { get; set; } = new List<DialogOption>();
     }
@@ -40,6 +79,9 @@ namespace VisualNovel
         private Dictionary<string, DialogData> _dialogs = new Dictionary<string, DialogData>();
         private DialogData _currentDialog;
         private int _currentLineIndex;
+        //статы
+        private Stats _playerStats = new();
+        public Stats PlayerStats => _playerStats;
 
         public event Action OnDialogEnd;
 
@@ -75,28 +117,33 @@ namespace VisualNovel
 
         public void NextLine()
         {
+            var currentLine = GetCurrentLine(); // Сначала получаем текущую строку
+
+            if (currentLine != null && !string.IsNullOrEmpty(currentLine.NextDialog))
+            {
+                StartDialog(currentLine.NextDialog); // Переход в другую сцену
+                return;
+            }
+
             _currentLineIndex++;
 
             if (_currentLineIndex >= _currentDialog.Lines.Count)
             {
-                var currentLine = GetCurrentLine();
-                if (currentLine != null && !string.IsNullOrEmpty(currentLine.NextDialog))
-                {
-                    StartDialog(currentLine.NextDialog);
-                }
-                else
-                {
-                    OnDialogEnd?.Invoke();
-                }
+                OnDialogEnd?.Invoke(); // Конец диалога
             }
-        }
 
+        }
         public void SelectOption(int optionIndex)
         {
             var currentLine = GetCurrentLine();
             if (currentLine?.Options != null && optionIndex < currentLine.Options.Count)
             {
-                StartDialog(currentLine.Options[optionIndex].NextDialog);
+                var option = currentLine.Options[optionIndex];
+
+                if (option.StatChanges != null)
+                    _playerStats.ApplyChanges(option.StatChanges);
+
+                StartDialog(option.NextDialog);
             }
         }
     }
@@ -113,6 +160,10 @@ namespace VisualNovel
         private Texture2D _textBox;
         private List<Rectangle> _optionButtons = new List<Rectangle>();
         private MouseState _prevMouseState;
+        // загрузка фонов, которые хранятся в словаре
+        private Dictionary<string, Texture2D> _backgrounds = new Dictionary<string, Texture2D>();
+        private Texture2D _currentBackground;
+        private List<int> _visibleOptionIndices = new List<int>(); // индексы видимых опций
 
         public Game1()
         {
@@ -132,11 +183,13 @@ namespace VisualNovel
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            _background = Content.Load<Texture2D>("background");
             _character = Content.Load<Texture2D>("character_girl");
             _characterMan = Content.Load<Texture2D>("character_man");
             _font = Content.Load<SpriteFont>("Font");
             _textBox = Content.Load<Texture2D>("textBox");
+            // Загрузка фонов из ресурсов
+            _backgrounds["background_1"] = Content.Load<Texture2D>("background_1");
+            _backgrounds["background_2"] = Content.Load<Texture2D>("background_2");
 
             _dialogManager = new DialogManager();
 
@@ -145,15 +198,24 @@ namespace VisualNovel
             _dialogManager.LoadDialogs(json);
             _dialogManager.StartDialog("start");
         }
-
+        private void UpdateBackground(DialogLineData line)
+        {
+            if (line != null && !string.IsNullOrEmpty(line.BackgroundImage))
+            {
+                if (_backgrounds.TryGetValue(line.BackgroundImage, out var bg))
+                {
+                    _currentBackground = bg;
+                }
+            }
+        }
         protected override void Update(GameTime gameTime)
         {
             var mouseState = Mouse.GetState();
 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
             var currentLine = _dialogManager.GetCurrentLine();
+            UpdateBackground(currentLine);
             if (currentLine?.Options != null && currentLine.Options.Count > 0)
             {
                 // Есть варианты выбора
@@ -164,10 +226,12 @@ namespace VisualNovel
                     {
                         if (_optionButtons[i].Contains(mouseState.Position))
                         {
-                            _dialogManager.SelectOption(i);
+                            int actualOptionIndex = _visibleOptionIndices[i]; 
+                            _dialogManager.SelectOption(actualOptionIndex);
                             break;
                         }
                     }
+
                 }
             }
             else if (Keyboard.GetState().IsKeyDown(Keys.Space) ||
@@ -187,8 +251,10 @@ namespace VisualNovel
             _spriteBatch.Begin();
 
             // Рисуем фон
-            _spriteBatch.Draw(_background, GraphicsDevice.Viewport.Bounds, Color.White);
-
+            _spriteBatch.Draw(_currentBackground ?? _background, GraphicsDevice.Viewport.Bounds, Color.White);
+            /*var stats = _dialogManager.PlayerStats;
+            _spriteBatch.DrawString(_font, $"Харизма: {stats.Charisma}  Интеллект: {stats.Intelligence}  Репутация: {stats.Reputation}", new Vector2(20, 20), Color.Yellow);
+            */
             var currentLine = _dialogManager.GetCurrentLine();
             if (currentLine != null)
             {
@@ -216,19 +282,29 @@ namespace VisualNovel
                 }
 
                 _spriteBatch.DrawString(_font, currentLine.Text,
-                    new Vector2(120, 550), Color.White);
+                    new Vector2(120, 550), Color.Black);
 
                 // Рисуем варианты ответа
-                if (currentLine.Options != null)
+                _optionButtons.Clear();
+                _visibleOptionIndices.Clear();
+
+                var stats = _dialogManager.PlayerStats;
+                int yOffset = 0;
+
+                for (int i = 0; i < currentLine.Options.Count; i++)
                 {
-                    _optionButtons.Clear();
-                    for (int i = 0; i < currentLine.Options.Count; i++)
-                    {
-                        var optionRect = new Rectangle(120, 600 + i * 40, 400, 30);
-                        _optionButtons.Add(optionRect);
-                        _spriteBatch.DrawString(_font, $"{i + 1}. {currentLine.Options[i].Text}",
-                            new Vector2(optionRect.X, optionRect.Y), Color.White);
-                    }
+                    var option = currentLine.Options[i];
+                    if (option.Requirements != null && !stats.MeetsRequirements(option.Requirements))
+                        continue;
+
+                    var optionRect = new Rectangle(120, 600 + yOffset * 40, 400, 30);
+                    _optionButtons.Add(optionRect);
+                    _visibleOptionIndices.Add(i); // Сохраняем индекс исходной опции
+
+                    _spriteBatch.DrawString(_font, $"{yOffset + 1}. {option.Text}",
+                        new Vector2(optionRect.X, optionRect.Y), Color.White);
+
+                    yOffset++;
                 }
             }
 
