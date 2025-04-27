@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics">
+	<Asset Type="Graphics:FontDescription">
+		<!-- Используйте шрифт, который точно поддерживает русские буквы -->
+		<FontName>Arial</FontName>
+		<!-- Или "Times New Roman", "Calibri" -->
+		<Size>24</Size>
+		<!-- Размер шрифта -->
+		<Spacing>0</Spacing>
+		<!-- Межбуквенный интервал -->
+		<UseKerning>true</UseKerning>
+		<Style>Regular</Style>
+		<!-- Стиль: Regular, Bold, Italic -->
+
+		<!-- Обязательные блоки символов -->
+		<CharacterRegions>
+			<!-- Базовые латинские символы, цифры, знаки препинания -->
+			<CharacterRegion>
+				<Start>&#32;</Start>
+				<!-- Пробел -->
+				<End>&#126;</End>
+				<!-- ~ -->
+			</CharacterRegion>
+
+			<!-- Кириллица (русские буквы) -->
+			<CharacterRegion>
+				<Start>&#1024;</Start>
+				<!-- А -->
+				<End>&#1279;</End>
+				<!-- џ -->
+			</CharacterRegion>
+
+			<!-- Дополнительные символы (опционально) -->
+			<CharacterRegion>
+				<Start>&#8364;</Start>
+				<!-- € -->
+				<End>&#8364;</End>
+			</CharacterRegion>
+		</CharacterRegions>
+	</Asset>
+</XnaContent>
