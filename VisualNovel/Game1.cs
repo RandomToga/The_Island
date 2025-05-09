@@ -185,8 +185,8 @@ namespace VisualNovel
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private Texture2D _background;
-        private Texture2D _character;
-        private Texture2D _characterMan;
+        private Texture2D _Mira;
+        private Texture2D _Ada;
         private SpriteFont _font;
         private DialogManager _dialogManager;
         private Texture2D _textBox;
@@ -239,14 +239,14 @@ namespace VisualNovel
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _menuBackground = Content.Load<Texture2D>("menu_background"); //бэк для меню
-            _character = Content.Load<Texture2D>("character_girl");
-            _characterMan = Content.Load<Texture2D>("character_man");
+            _Mira = Content.Load<Texture2D>("mira_default"); //мира (потом поменять на словарь)
+            _Ada = Content.Load<Texture2D>("ada_default"); // ада (потом поменять на словарь)
             _font = Content.Load<SpriteFont>("Font");
             _textBox = Content.Load<Texture2D>("textBox");
             // Загрузка фонов из ресурсов
-            _backgrounds["background_1"] = Content.Load<Texture2D>("background_1");
-            _backgrounds["background_2"] = Content.Load<Texture2D>("background_2");
-            _background = _backgrounds["background_1"];
+            _backgrounds["camp_night"] = Content.Load<Texture2D>("camp_night");
+            _backgrounds["hangar_dark"] = Content.Load<Texture2D>("hangar_dark");
+            _background = _backgrounds["camp_night"];
             _currentBackground = _background;
             _dialogManager = new DialogManager();
 
@@ -392,8 +392,8 @@ namespace VisualNovel
                     // Рисуем персонажа
                     Texture2D character = currentLine.CharacterImage switch
                     {
-                        "character_girl" => _character,
-                        "character_man" => _characterMan,
+                        "mira_default" => _Mira,
+                        "ada_default" => _Ada,
                         _ => null
                     };
 
@@ -408,12 +408,10 @@ namespace VisualNovel
                     // Рисуем текст
                     if (!string.IsNullOrEmpty(currentLine.Speaker))
                     {
-                        _spriteBatch.DrawString(_font, $"{currentLine.Speaker}:",
-                            new Vector2(120, 520), Color.White);
+                        _spriteBatch.DrawString(_font, $"{currentLine.Speaker}:", new Vector2(120, 520), Color.White);
                     }
 
-                    _spriteBatch.DrawString(_font, currentLine.Text,
-                        new Vector2(120, 550), Color.Black);
+                    _spriteBatch.DrawString(_font, currentLine.Text, new Vector2(120, 550), Color.Black);
 
                     // Рисуем варианты ответа
                     _optionButtons.Clear();
