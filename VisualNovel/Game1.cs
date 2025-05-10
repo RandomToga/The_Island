@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
-
+// сжать этих брошек девочек потому что они не хотят загружаться в гит
+// проблема в шрифте нет знака -
 namespace VisualNovel
 {
     public class Stats
@@ -175,6 +176,37 @@ namespace VisualNovel
 
     public class Game1 : Game
     {
+        //метод для разделения строк по пробелам для красивого вывода фраз
+        private List<string> WrapText(SpriteFont font, string text, float maxLineWidth)
+        {
+            var words = text.Split(' ');
+            var lines = new List<string>();
+            var currentLine = "";
+
+            foreach (var word in words)
+            {
+                string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                float lineWidth = font.MeasureString(testLine).X;
+
+                if (lineWidth > maxLineWidth)
+                {
+                    if (!string.IsNullOrEmpty(currentLine))
+                        lines.Add(currentLine);
+
+                    currentLine = word; // начать новую строку
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
+                lines.Add(currentLine);
+
+            return lines;
+        }
+
         enum GameState
         {
             Menu,
@@ -187,9 +219,13 @@ namespace VisualNovel
         private Texture2D _background;
         private Texture2D _Mira;
         private Texture2D _Ada;
+        private Texture2D _Aaron;
+        private Texture2D _Iris;
+        private Texture2D _Alex;
         private SpriteFont _font;
         private DialogManager _dialogManager;
         private Texture2D _textBox;
+        private Texture2D _backButtonTexture;
         private List<Rectangle> _optionButtons = new List<Rectangle>();
         private MouseState _prevMouseState;
         // загрузка фонов, которые хранятся в словаре
@@ -229,8 +265,14 @@ namespace VisualNovel
 
         protected override void Initialize()
         {
-            _graphics.PreferredBackBufferWidth = 1280;
-            _graphics.PreferredBackBufferHeight = 720;
+            // Устанавливаем полноэкранный режим
+            _graphics.IsFullScreen = true;
+
+            // Получаем текущее разрешение экрана
+            var displayMode = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            _graphics.PreferredBackBufferWidth = displayMode.Width;
+            _graphics.PreferredBackBufferHeight = displayMode.Height;
+
             _graphics.ApplyChanges();
             base.Initialize();
         }
@@ -240,9 +282,13 @@ namespace VisualNovel
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _menuBackground = Content.Load<Texture2D>("menu_background"); //бэк для меню
             _Mira = Content.Load<Texture2D>("mira_default"); //мира (потом поменять на словарь)
-            _Ada = Content.Load<Texture2D>("ada_default"); // ада (потом поменять на словарь)
+            _Ada = Content.Load<Texture2D>("ada_default");// ада (потом поменять на словарь)
+            _Iris = Content.Load<Texture2D>("iris_default");//ирис
+            _Aaron = Content.Load<Texture2D>("aaron_default"); //аарон
+            _Alex = Content.Load<Texture2D>("alex_default"); //алекс
             _font = Content.Load<SpriteFont>("Font");
             _textBox = Content.Load<Texture2D>("textBox");
+            _backButtonTexture = Content.Load<Texture2D>("back_button"); //кнопка назад
             // Загрузка фонов из ресурсов
             _backgrounds["camp_night"] = Content.Load<Texture2D>("camp_night");
             _backgrounds["hangar_dark"] = Content.Load<Texture2D>("hangar_dark");
@@ -270,6 +316,11 @@ namespace VisualNovel
             var mouseState = Mouse.GetState();
             if (_currentState == GameState.Menu)
             {
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                {
+                    SaveGame();
+                    Exit();
+                }
                 if (mouseState.LeftButton == ButtonState.Pressed &&
                     _prevMouseState.LeftButton == ButtonState.Released)
                 {
@@ -299,7 +350,6 @@ namespace VisualNovel
                 }
 
                 _prevMouseState = mouseState;
-                return; // не обновляй дальше
             }
 
             if (_currentState == GameState.Playing)
@@ -313,10 +363,9 @@ namespace VisualNovel
                 if (mouseState.LeftButton == ButtonState.Pressed && _prevMouseState.LeftButton == ButtonState.Released)
                 {
                     // Кнопка "назад" — в левом верхнем углу
-                    Rectangle backButtonRect = new Rectangle(10, 10, 40, 40);
+                    Rectangle backButtonRect = new Rectangle(10, 10, 100, 100);
                     if (backButtonRect.Contains(mouseState.Position))
                     {
-                        SaveGame();
                         _currentState = GameState.Menu;
                         _prevMouseState = mouseState;
                         return;
@@ -382,9 +431,9 @@ namespace VisualNovel
                 /*var stats = _dialogManager.PlayerStats;
                 _spriteBatch.DrawString(_font, $"Харизма: {stats.Charisma}  Интеллект: {stats.Intelligence}  Репутация: {stats.Reputation}", new Vector2(20, 20), Color.Yellow);
                 */
-                // Кнопка "Назад в меню" в виде стрелки влево
-                var backButtonRect = new Rectangle(10, 10, 40, 40);
-                _spriteBatch.DrawString(_font, "<", new Vector2(backButtonRect.X + 10, backButtonRect.Y), Color.White);
+                // Кнопка "Назад в меню"
+                var backButtonRect = new Rectangle(10, 10, 100, 100);
+                _spriteBatch.Draw(_backButtonTexture, backButtonRect, Color.White);
 
                 var currentLine = _dialogManager.GetCurrentLine();
                 if (currentLine != null)
@@ -394,24 +443,59 @@ namespace VisualNovel
                     {
                         "mira_default" => _Mira,
                         "ada_default" => _Ada,
+                        "aaron_default"=> _Aaron,
+                        "iris_default"=> _Iris,
+                        "alex_default"=> _Alex,
                         _ => null
                     };
 
                     if (character != null)
                     {
-                        _spriteBatch.Draw(character, new Vector2(300, 200), Color.White);
+                        float scale = 0.8f; // масштаб персонажа
+                        var characterX = (GraphicsDevice.Viewport.Width - character.Width*scale) / 2f;
+                        var characterY = GraphicsDevice.Viewport.Height - character.Height * scale;
+
+                        _spriteBatch.Draw(character, new Vector2(characterX, characterY), null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
                     }
 
-                    // Рисуем текстовое окно
-                    _spriteBatch.Draw(_textBox, new Rectangle(100, 500, 1080, 200), Color.White);
+                    // Центрированный текстбокс снизу
+                    int textBoxWidth = GraphicsDevice.Viewport.Width - 130;
+                    int textBoxHeight = 400;
+                    int textBoxX = (GraphicsDevice.Viewport.Width - textBoxWidth) / 2;
+                    int textBoxY = GraphicsDevice.Viewport.Height - textBoxHeight - 40;
 
-                    // Рисуем текст
+                    var textBoxRect = new Rectangle(textBoxX, textBoxY, textBoxWidth, textBoxHeight);
+                    _spriteBatch.Draw(_textBox, textBoxRect, Color.White);
+
+
+                    // Отступы
+                    float paddingTop = 100f;
+                    float paddingSides = 210f;
+                    float maxLineWidth = textBoxWidth - 2 * paddingSides;
+                    float centerX = textBoxX + textBoxWidth / 2f;
+
+                    // Имя персонажа — в верхнем левом углу текстбокса
                     if (!string.IsNullOrEmpty(currentLine.Speaker))
                     {
-                        _spriteBatch.DrawString(_font, $"{currentLine.Speaker}:", new Vector2(120, 520), Color.White);
+                        var speakerText = $"{currentLine.Speaker}";
+                        _spriteBatch.DrawString(_font, speakerText,
+                            new Vector2(textBoxX + 250f, textBoxY + 67f),
+                            Color.White);
                     }
 
-                    _spriteBatch.DrawString(_font, currentLine.Text, new Vector2(120, 550), Color.Black);
+                    // Основной текст с переносом строк
+                    var wrappedLines = WrapText(_font, currentLine.Text, maxLineWidth);
+                    float lineHeight = _font.LineSpacing;
+                    float textStartY = textBoxY + paddingTop + lineHeight;
+
+                    foreach (var line in wrappedLines)
+                    {
+                        var lineSize = _font.MeasureString(line);
+                        _spriteBatch.DrawString(_font, line,
+                            new Vector2(centerX - lineSize.X / 2, textStartY), Color.White);
+                        textStartY += lineHeight;
+                    }
+
 
                     // Рисуем варианты ответа
                     _optionButtons.Clear();
@@ -426,17 +510,23 @@ namespace VisualNovel
                         if (option.Requirements != null && !stats.MeetsRequirements(option.Requirements))
                             continue;
 
-                        var optionRect = new Rectangle(120, 600 + yOffset * 40, 400, 30);
+                        var optionText = $"{yOffset + 1}. {option.Text}";
+                        var optionSize = _font.MeasureString(optionText);
+
+                        float optionX = centerX - optionSize.X / 2;
+                        float optionY = textStartY + 20 + yOffset * (lineHeight + 5);
+
+                        var optionRect = new Rectangle((int)optionX, (int)optionY, (int)optionSize.X, (int)optionSize.Y);
                         _optionButtons.Add(optionRect);
-                        _visibleOptionIndices.Add(i); // Сохраняем индекс исходной опции
+                        _visibleOptionIndices.Add(i);
 
-                        _spriteBatch.DrawString(_font, $"{yOffset + 1}. {option.Text}",
-                            new Vector2(optionRect.X, optionRect.Y), Color.White);
-
+                        _spriteBatch.DrawString(_font, optionText, new Vector2(optionX, optionY), Color.White);
                         yOffset++;
                     }
+
+
                 }
-        }
+            }
             if (!string.IsNullOrEmpty(_popupMessage))
             {
                 var size = _font.MeasureString(_popupMessage);

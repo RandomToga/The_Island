@@ -1,82 +1,4 @@
-﻿/*{
-    "dialogs": [
-        {
-            "id": "start",
-            "lines": [
-                {
-                    "speaker": "Девушка",
-                    "text": "Привет! Ты новый сотрудник?",
-                    "characterImage": "character_girl",
-                    "backgroundImage": "background_1",
-                    "nextDialog": "girl_question"
-                }
-            ]
-        },
-        {
-            "id": "girl_question",
-            "lines": [
-                {
-                    "speaker": "Девушка",
-                    "text": "Как тебе наша компания?",
-                    "characterImage": "character_girl",
-                    "backgroundImage": "background_2",
-                    "options": [
-                        {
-                            "text": "Очень нравится!",
-                            "nextDialog": "positive_reply",
-                            "statChanges": {
-                                "charisma": 1,
-                                "reputation": 2
-                            }  
-                        },
-                        {
-                            "text": "Пока не понял...",
-                            "nextDialog": "negative_reply",
-                            "statChanges": {
-                                "charisma": 1,
-                                "reputation": 2
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "positive_reply",
-            "lines": [
-                {
-                    "speaker": "Мужчина",
-                    "text": "Рад слышать! Держи бонус.",
-                    "characterImage": "character_man",
-                    "backgroundImage": "background_1",
-                    "nextDialog": "end"
-                }
-            ]
-        },
-        {
-            "id": "negative_reply",
-            "lines": [
-                {
-                    "speaker": "Мужчина",
-                    "text": "Ничего, скоро привыкнешь.",
-                    "characterImage": "character_man",
-                    "backgroundImage": "background_2",
-                    "nextDialog": "end"
-                }
-            ]
-        },
-        {
-            "id": "end",
-            "lines": [
-                {
-                    "text": "(Диалог окончен)",
-                    "nextDialog": null
-                }
-            ]
-        }
-    ]
-}*/
-{
+﻿{
     "dialogs": [
         {
             "id": "start",
@@ -96,8 +18,7 @@
                 {
                     "speaker": "Ирис",
                     "text": "Ты уверена, что он взлетит? Этот хлам сто лет ржавел в снегу.",
-                    //"characterImage": "iris_default",
-                    "characterImage": "mira_default",
+                    "characterImage": "iris_default",
                     "backgroundImage": "camp_night",
                     "nextDialog": "alex_reply"
                 }
@@ -109,8 +30,7 @@
                 {
                     "speaker": "Алекс",
                     "text": "Двигатель на ручной системе, фильтры сменили. Если повезёт донесёт хотя бы до Пустоши.",
-                    //"characterImage": "alex_default",
-                    "characterImage": "mira_default",
+                    "characterImage": "alex_default",
                     "backgroundImage": "hangar_dark",
                     "nextDialog": "ada_entry"
                 }
@@ -127,14 +47,14 @@
                     "nextDialog": "decision_launch"
                 }
             ]
-        }
-        /*{
+        },
+        {
             "id": "decision_launch",
             "lines": [
                 {
                     "speaker": "Мира",
                     "text": "Решаем сейчас. Лететь или ждать следующей метели, чтобы замести следы?",
-                    "characterImage": "mira_command",
+                    "characterImage": "mira_default",
                     "backgroundImage": "hangar_dark",
                     "options": [
                         {
@@ -162,8 +82,8 @@
             "lines": [
                 {
                     "speaker": "Аарон",
-                    "text": "Ха! Вот это по мне. Смерть — тоже путь на свободу.",
-                    "characterImage": "aaron_ready",
+                    "text": "Ха! Вот это по мне. Смерть тоже путь на свободу.",
+                    "characterImage": "aaron_default",
                     "backgroundImage": "launch_pad",
                     "nextDialog": "takeoff"
                 }
@@ -175,13 +95,13 @@
                 {
                     "speaker": "Ирис",
                     "text": "Умно. Пусть метель спрячет наши следы, потом улетим.",
-                    "characterImage": "iris_calm",
+                    "characterImage": "iris_default",
                     "backgroundImage": "launch_pad",
                     "nextDialog": "takeoff"
                 }
             ]
-        },
-        {
+        }
+        /*{
             "id": "takeoff",
             "lines": [
                 {
