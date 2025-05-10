@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
-// сжать этих брошек девочек потому что они не хотят загружаться в гит
+
 // проблема в шрифте нет знака -
+//проблема в перключении пробелом! исправить.
 namespace VisualNovel
 {
     public class Stats
@@ -80,6 +81,44 @@ namespace VisualNovel
     {
         public List<DialogData> Dialogs { get; set; } = new List<DialogData>();
     }
+
+    //кнопка для меню
+    public class Button
+    {
+        public Texture2D Texture;
+        public SpriteFont Font;
+        public Rectangle Bounds;
+        public string Text;
+        public Action OnClick;
+
+        private bool _isHovered;
+
+        public void Update1(MouseState currentMouse, MouseState previousMouse)
+        {
+            _isHovered = Bounds.Contains(currentMouse.Position);
+
+            if (_isHovered &&
+                currentMouse.LeftButton == ButtonState.Pressed &&
+                previousMouse.LeftButton == ButtonState.Released)
+            {
+                OnClick?.Invoke();
+            }
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            Color textColor = _isHovered ? Color.Gray : Color.White;
+            spriteBatch.Draw(Texture, Bounds, Color.White);
+            Vector2 textSize = Font.MeasureString(Text);
+            Vector2 textPosition = new Vector2(
+                Bounds.X + (Bounds.Width - textSize.X) / 2,
+                Bounds.Y + (Bounds.Height - textSize.Y) / 2
+            );
+
+            spriteBatch.DrawString(Font, Text, textPosition, textColor);
+        }
+    }
+
 
     public class DialogManager
     {
@@ -226,8 +265,11 @@ namespace VisualNovel
         private DialogManager _dialogManager;
         private Texture2D _textBox;
         private Texture2D _backButtonTexture;
+        private Texture2D _buttonMenu;
         private List<Rectangle> _optionButtons = new List<Rectangle>();
         private MouseState _prevMouseState;
+        List<Button> _buttons;
+
         // загрузка фонов, которые хранятся в словаре
         private Dictionary<string, Texture2D> _backgrounds = new Dictionary<string, Texture2D>();
         private Texture2D _currentBackground;
@@ -289,9 +331,11 @@ namespace VisualNovel
             _font = Content.Load<SpriteFont>("Font");
             _textBox = Content.Load<Texture2D>("textBox");
             _backButtonTexture = Content.Load<Texture2D>("back_button"); //кнопка назад
+            _buttonMenu = Content.Load<Texture2D>("button_menu"); // кнопка меню
             // Загрузка фонов из ресурсов
             _backgrounds["camp_night"] = Content.Load<Texture2D>("camp_night");
             _backgrounds["hangar_dark"] = Content.Load<Texture2D>("hangar_dark");
+            _backgrounds["cockpit_red"] = Content.Load<Texture2D>("cockpit_red");
             _background = _backgrounds["camp_night"];
             _currentBackground = _background;
             _dialogManager = new DialogManager();
@@ -300,6 +344,52 @@ namespace VisualNovel
             string json = File.ReadAllText(jsonPath);
             _dialogManager.LoadDialogs(json);
             _dialogManager.StartDialog("start");
+            //кнопки меню
+            _buttons = new List<Button>();
+            string[] labels = { "Новая игра", "Сохранить", "Продолжить", "Выход" };
+            int buttonWidth = 500;
+            int buttonHeight = 60;
+            int spacing = 20;
+            int screenWidth = GraphicsDevice.Viewport.Width;
+            int screenHeight = GraphicsDevice.Viewport.Height;
+            int startY = (screenHeight - (labels.Length * (buttonHeight + spacing))) / 2 + 200;
+            for (int i = 0; i < labels.Length; i++)
+            {
+                string text = labels[i];
+                int x = (screenWidth - buttonWidth) / 2;
+                int y = startY + i * (buttonHeight + spacing);
+
+                var button = new Button
+                {
+                    Texture = _buttonMenu,
+                    Font = _font,
+                    Bounds = new Rectangle(x, y, buttonWidth, buttonHeight),
+                    Text = text,
+                    OnClick = text switch
+                    {
+                        "Новая игра" => () => {
+                            _dialogManager.StartDialog("start");
+                            _currentState = GameState.Playing;
+                        }
+                        ,
+                        "Сохранить" => () => SaveGame(),
+                        "Продолжить" => () => {
+                            LoadGame();
+                            _currentState = GameState.Playing;
+                        }
+                        ,
+                        "Выход" => () => {
+                            SaveGame();
+                            Exit();
+                        }
+                        ,
+                        _ => null
+                    }
+                };
+
+                _buttons.Add(button);
+            }
+
         }
         private void UpdateBackground(DialogLineData line)
         {
@@ -314,6 +404,8 @@ namespace VisualNovel
         protected override void Update(GameTime gameTime)
         {
             var mouseState = Mouse.GetState();
+            MouseState currentMouse = Mouse.GetState();
+
             if (_currentState == GameState.Menu)
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -321,36 +413,15 @@ namespace VisualNovel
                     SaveGame();
                     Exit();
                 }
-                if (mouseState.LeftButton == ButtonState.Pressed &&
-                    _prevMouseState.LeftButton == ButtonState.Released)
+                foreach (var button in _buttons)
                 {
-                    Rectangle playButtonRect = new Rectangle(540, 300, 200, 60);
-                    Rectangle saveButtonRect = new Rectangle(540, 340, 200, 40);
-                    Rectangle loadButtonRect = new Rectangle(540, 380, 200, 40);
-                    Rectangle exitButtonRect = new Rectangle(540, 420, 200, 40);
-                    if (playButtonRect.Contains(mouseState.Position))
-                    {
-                        _dialogManager.StartDialog("start"); // Начать игру заново
-                        _currentState = GameState.Playing;
-                    }
-                    else if (saveButtonRect.Contains(mouseState.Position))
-                    {
-                        SaveGame();
-                    }
-                    else if (loadButtonRect.Contains(mouseState.Position))
-                    {
-                        LoadGame();
-                        _currentState = GameState.Playing;
-                    }
-                    else if (exitButtonRect.Contains(mouseState.Position))
-                    {
-                        SaveGame();
-                        Exit();
-                    }
+                    button.Update1(currentMouse, _prevMouseState);
                 }
-
-                _prevMouseState = mouseState;
+                _prevMouseState = currentMouse;
             }
+
+            
+
 
             if (_currentState == GameState.Playing)
             {
@@ -416,14 +487,23 @@ namespace VisualNovel
             _spriteBatch.Begin();
             if (_currentState == GameState.Menu)
             {
-                
-                _spriteBatch.Draw(_menuBackground, GraphicsDevice.Viewport.Bounds, Color.White);
-                _spriteBatch.DrawString(_font, "Новая игра", new Vector2(600, 320), Color.Yellow);
-                _spriteBatch.DrawString(_font, "Сохранить", new Vector2(600, 360), Color.Yellow);
-                _spriteBatch.DrawString(_font, "Продолжить", new Vector2(600, 400), Color.Yellow);
-                _spriteBatch.DrawString(_font, "Выход", new Vector2(600, 440), Color.Yellow);
-
+                int screenWidth = GraphicsDevice.Viewport.Width;
+                int screenHeight = GraphicsDevice.Viewport.Height;
+                //фоновая картинка без искажения
+                float scaleX = (float)screenWidth / _menuBackground.Width;
+                float scaleY = (float)screenHeight / _menuBackground.Height;
+                float scale = Math.Min(scaleX, scaleY);
+                float drawWidth = _menuBackground.Width * scale;
+                float drawHeight = _menuBackground.Height * scale;
+                Vector2 position = new Vector2((screenWidth - drawWidth) / 2, (screenHeight - drawHeight) / 2);
+                _spriteBatch.Draw(_menuBackground, position, null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+                // Рисуем кнопки
+                foreach (var button in _buttons)
+                {
+                    button.Draw(_spriteBatch);
+                }
             }
+
             if (_currentState == GameState.Playing)
             {
                 // Рисуем фон
@@ -445,8 +525,7 @@ namespace VisualNovel
                         "ada_default" => _Ada,
                         "aaron_default"=> _Aaron,
                         "iris_default"=> _Iris,
-                        "alex_default"=> _Alex,
-                        _ => null
+                        "alex_default"=> _Alex
                     };
 
                     if (character != null)
@@ -534,7 +613,7 @@ namespace VisualNovel
                     (GraphicsDevice.Viewport.Width - size.X) / 2,
                     GraphicsDevice.Viewport.Height - 100);
 
-                _spriteBatch.DrawString(_font, _popupMessage, position, Color.Lime);
+                _spriteBatch.DrawString(_font, _popupMessage, position, Color.Red);
             }
             _spriteBatch.End();
             base.Draw(gameTime);

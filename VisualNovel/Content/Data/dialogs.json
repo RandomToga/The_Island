@@ -100,14 +100,14 @@
                     "nextDialog": "takeoff"
                 }
             ]
-        }
-        /*{
+        },
+        {
             "id": "takeoff",
             "lines": [
                 {
                     "speaker": "Алекс",
                     "text": "Готовность 87%. Закрываю люк. Все пристегнулись!",
-                    "characterImage": "alex_alert",
+                    "characterImage": "alex_default",
                     "backgroundImage": "cockpit_red",
                     "nextDialog": "launch_event"
                 }
@@ -119,7 +119,8 @@
                 {
                     "speaker": "Система",
                     "text": "[ТРЕВОГА] Обнаружено движение дронов A.V.E.L. Подготовка к аварийному взлёту.",
-                    "characterImage": "system_alert",
+                    //"characterImage": "system_alert",
+                    "characterImage": "alex_default",
                     "backgroundImage": "cockpit_red",
                     "nextDialog": "crash_sequence"
                 }
@@ -131,13 +132,13 @@
                 {
                     "speaker": "Мира",
                     "text": "Курс сбит! Мы теряем управление! Все держитесь!",
-                    "characterImage": "mira_shouting",
+                    "characterImage": "mira_default",
                     "backgroundImage": "cockpit_red",
                     "nextDialog": "crash"
                 }
             ]
-        },
-        {
+        }
+        /*{
             "id": "crash",
             "lines": [
                 {
