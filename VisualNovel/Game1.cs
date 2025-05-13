@@ -215,6 +215,58 @@ namespace VisualNovel
 
     public class Game1 : Game
     {
+        
+        enum GameState
+        {
+            Menu,
+            Playing
+        }
+        GameState _currentState = GameState.Menu;
+        private Texture2D _menuBackground;
+        private GraphicsDeviceManager _graphics;
+        private SpriteBatch _spriteBatch;
+        private Texture2D _background;
+        private Texture2D _Mira;
+        private Texture2D _Ada;
+        private Texture2D _Aaron;
+        private Texture2D _Iris;
+        private Texture2D _Alex;
+        private SpriteFont _font;
+        private DialogManager _dialogManager;
+        private Texture2D _textBox;
+        private Texture2D _backButtonTexture;
+        private Texture2D _buttonMenu;
+        private List<Rectangle> _optionButtons = new List<Rectangle>();
+        private MouseState _prevMouseState;
+        private KeyboardState _prevKeyboardState;
+        List<Button> _buttons;
+
+        // загрузка фонов, которые хранятся в словаре
+        private Dictionary<string, Texture2D> _backgrounds = new Dictionary<string, Texture2D>();
+        private Texture2D _currentBackground;
+        private List<int> _visibleOptionIndices = new List<int>(); // индексы видимых опций
+        //для всплывающего сообщения о сохранении игры
+        private string _popupMessage = null;
+        private double _popupTimer = 0;
+        //для эффекта печатной машинки
+        private string _visibleText = "";
+        private string _fullText = "";
+        private double _textTimer = 0;
+        private int _charIndex = 0;
+        private bool _textFullyShown = false;
+        private double _textSpeed = 25.0; // символов в секунду
+        private List<string> _visibleOptions = new();
+        private double _optionsTimer = 0;
+        private int _optionCharIndex = 0;
+        private double _optionsTextTimer = 0; // Таймер для текста вариантов
+        private int _optionTextIndex = 0; // Индекс текущего символа для отображения
+
+        public Game1()
+        {
+            _graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            IsMouseVisible = true;
+        }
         //метод для разделения строк по пробелам для красивого вывода фраз
         private List<string> WrapText(SpriteFont font, string text, float maxLineWidth)
         {
@@ -246,44 +298,6 @@ namespace VisualNovel
             return lines;
         }
 
-        enum GameState
-        {
-            Menu,
-            Playing
-        }
-        GameState _currentState = GameState.Menu;
-        private Texture2D _menuBackground;
-        private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
-        private Texture2D _background;
-        private Texture2D _Mira;
-        private Texture2D _Ada;
-        private Texture2D _Aaron;
-        private Texture2D _Iris;
-        private Texture2D _Alex;
-        private SpriteFont _font;
-        private DialogManager _dialogManager;
-        private Texture2D _textBox;
-        private Texture2D _backButtonTexture;
-        private Texture2D _buttonMenu;
-        private List<Rectangle> _optionButtons = new List<Rectangle>();
-        private MouseState _prevMouseState;
-        List<Button> _buttons;
-
-        // загрузка фонов, которые хранятся в словаре
-        private Dictionary<string, Texture2D> _backgrounds = new Dictionary<string, Texture2D>();
-        private Texture2D _currentBackground;
-        private List<int> _visibleOptionIndices = new List<int>(); // индексы видимых опций
-        //для всплывающего сообщения о сохранении игры
-        private string _popupMessage = null;
-        private double _popupTimer = 0;
-
-        public Game1()
-        {
-            _graphics = new GraphicsDeviceManager(this);
-            Content.RootDirectory = "Content";
-            IsMouseVisible = true;
-        }
         private string savePath => Path.Combine(Environment.CurrentDirectory, "save.json");
 
         private void SaveGame()
@@ -401,6 +415,18 @@ namespace VisualNovel
                 }
             }
         }
+        private void ResetTextState()
+        {
+            _textTimer = 0;
+            _charIndex = 0;
+            _visibleText = "";
+            _textFullyShown = false;
+
+            _optionsTimer = 0;
+            _visibleOptions.Clear();
+            _visibleOptionIndices.Clear();
+        }
+
         protected override void Update(GameTime gameTime)
         {
             var mouseState = Mouse.GetState();
@@ -420,17 +446,11 @@ namespace VisualNovel
                 _prevMouseState = currentMouse;
             }
 
-            
+
 
 
             if (_currentState == GameState.Playing)
             {
-
-                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                {
-                    SaveGame();
-                    Exit();
-                }
                 if (mouseState.LeftButton == ButtonState.Pressed && _prevMouseState.LeftButton == ButtonState.Released)
                 {
                     // Кнопка "назад" — в левом верхнем углу
@@ -442,41 +462,102 @@ namespace VisualNovel
                         return;
                     }
                 }
-                var currentLine = _dialogManager.GetCurrentLine();
-                UpdateBackground(currentLine);
-                if (currentLine?.Options != null && currentLine.Options.Count > 0)
+                if (_currentState == GameState.Playing)
                 {
-                    // Есть варианты выбора
-                    if (mouseState.LeftButton == ButtonState.Pressed &&
-                        _prevMouseState.LeftButton == ButtonState.Released)
+                    var keyboard = Keyboard.GetState();
+
+                    if (keyboard.IsKeyDown(Keys.Escape))
                     {
-                        for (int i = 0; i < _optionButtons.Count; i++)
+                        SaveGame();
+                        Exit();
+                    }
+
+                    var currentLine = _dialogManager.GetCurrentLine();
+                    UpdateBackground(currentLine);
+
+                    if (currentLine != null)
+                    {
+                        // Обновление текста построчно
+                        if (!_textFullyShown)
                         {
-                            if (_optionButtons[i].Contains(mouseState.Position))
+                            _textTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                            int charsToShow = (int)(_textTimer * _textSpeed);
+
+                            if (charsToShow > _charIndex && _charIndex < currentLine.Text.Length)
                             {
-                                int actualOptionIndex = _visibleOptionIndices[i];
-                                _dialogManager.SelectOption(actualOptionIndex);
-                                break;
+                                _charIndex = charsToShow;
+                                _visibleText = currentLine.Text.Substring(0, Math.Min(_charIndex, currentLine.Text.Length));
+
+                                if (_charIndex >= currentLine.Text.Length)
+                                    _textFullyShown = true;
+                            }
+                        }
+                        if (_textFullyShown && currentLine.Options != null && currentLine.Options.Count > 0)
+                        {
+                            _optionsTextTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                            int charsToShowOptions = (int)(_optionsTextTimer * _textSpeed);
+
+                            if (charsToShowOptions > _optionTextIndex && _optionTextIndex < currentLine.Options.Count)
+                            {
+                                _optionTextIndex = charsToShowOptions;
+                                _visibleOptions.Clear();
+
+                                for (int i = 0; i < _optionTextIndex; i++)
+                                {
+                                    _visibleOptions.Add(currentLine.Options[i].Text);
+                                }
+                            }
+                        }
+                    }
+
+                    // Клик мыши
+                    if ((mouseState.LeftButton == ButtonState.Pressed && _prevMouseState.LeftButton == ButtonState.Released) ||
+                        (keyboard.IsKeyDown(Keys.Space) && _prevKeyboardState.IsKeyUp(Keys.Space)))
+                    {
+                        if (!_textFullyShown)
+                        {
+                            _visibleText = currentLine.Text;
+                            _textFullyShown = true;
+                        }
+                        else if (currentLine?.Options != null && currentLine.Options.Count > 0)
+                        {
+                            for (int i = 0; i < _optionButtons.Count; i++)
+                            {
+                                if (_optionButtons[i].Contains(mouseState.Position))
+                                {
+                                    int actualOptionIndex = _visibleOptionIndices[i];
+                                    if (actualOptionIndex == -1)
+                                    {
+                                        _currentState = GameState.Menu;
+                                    }
+                                    else
+                                    {
+                                        _dialogManager.SelectOption(actualOptionIndex);
+                                        ResetTextState();
+                                    }
+                                    break;
+                                }
                             }
                         }
 
+                        else
+                        {
+                            _dialogManager.NextLine();
+                            ResetTextState();
+                        }
                     }
+                    _prevKeyboardState = keyboard;
+                    _prevMouseState = mouseState;
                 }
-                else if (Keyboard.GetState().IsKeyDown(Keys.Space) ||
-                         (mouseState.LeftButton == ButtonState.Pressed &&
-                          _prevMouseState.LeftButton == ButtonState.Released))
+
+                base.Update(gameTime);
+                if (_popupTimer > 0)
                 {
-                    _dialogManager.NextLine();
-                }
-            }
-            _prevMouseState = mouseState;
-            base.Update(gameTime);
-            if (_popupTimer > 0)
-            {
-                _popupTimer -= gameTime.ElapsedGameTime.TotalSeconds;
-                if (_popupTimer <= 0)
-                {
-                    _popupMessage = null;
+                    _popupTimer -= gameTime.ElapsedGameTime.TotalSeconds;
+                    if (_popupTimer <= 0)
+                    {
+                        _popupMessage = null;
+                    }
                 }
             }
         }
@@ -563,7 +644,7 @@ namespace VisualNovel
                     }
 
                     // Основной текст с переносом строк
-                    var wrappedLines = WrapText(_font, currentLine.Text, maxLineWidth);
+                    var wrappedLines = WrapText(_font, _visibleText, maxLineWidth);
                     float lineHeight = _font.LineSpacing;
                     float textStartY = textBoxY + paddingTop + lineHeight;
 
@@ -575,9 +656,8 @@ namespace VisualNovel
                         textStartY += lineHeight;
                     }
 
-
                     // Рисуем варианты ответа
-                    _optionButtons.Clear();
+                    /*_optionButtons.Clear();
                     _visibleOptionIndices.Clear();
 
                     var stats = _dialogManager.PlayerStats;
@@ -601,7 +681,38 @@ namespace VisualNovel
 
                         _spriteBatch.DrawString(_font, optionText, new Vector2(optionX, optionY), Color.White);
                         yOffset++;
+                    }*/
+                    // Рисуем варианты ответа с эффектом печатной машинки
+                    _optionButtons.Clear();
+                    _visibleOptionIndices.Clear();
+
+                    var stats = _dialogManager.PlayerStats;
+                    int yOffset = 0;
+
+                    for (int i = 0; i < currentLine.Options.Count; i++)
+                    {
+                        var option = currentLine.Options[i];
+                        if (option.Requirements != null && !stats.MeetsRequirements(option.Requirements))
+                            continue;
+
+                        // Выводим только те варианты, которые успели напечататься
+                        if (i < _visibleOptions.Count)
+                        {
+                            var optionText = $"{yOffset + 1}. {_visibleOptions[i]}";
+                            var optionSize = _font.MeasureString(optionText);
+
+                            float optionX = centerX - optionSize.X / 2;
+                            float optionY = textStartY + 20 + yOffset * (lineHeight + 5);
+
+                            var optionRect = new Rectangle((int)optionX, (int)optionY, (int)optionSize.X, (int)optionSize.Y);
+                            _optionButtons.Add(optionRect);
+                            _visibleOptionIndices.Add(i);
+
+                            _spriteBatch.DrawString(_font, optionText, new Vector2(optionX, optionY), Color.White);
+                            yOffset++;
+                        }
                     }
+
 
 
                 }
