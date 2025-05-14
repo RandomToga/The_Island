@@ -1,3 +1,3 @@
 ﻿
-using var game = new VisualNovel.Game1();
+using var game = new The_Island.GameMain();
 game.Run();
