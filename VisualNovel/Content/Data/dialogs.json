@@ -1,187 +1,137 @@
 ﻿{
-    "dialogs": [
+    "Dialogs": [
         {
-            "id": "start",
-            "lines": [
+            "Id": "start",
+            "Lines": [
                 {
-                    "speaker": "Мира",
-                    "text": "Готовы? Это наш единственный шанс выбраться отсюда живыми.",
-                    "characterImage": "mira_default",
-                    "backgroundImage": "camp_night",
-                    "nextDialog": "iris_reply"
+                    "Speaker": "Mira",
+                    "Text": "Добро пожаловать на корабль, пилот.",
+                    "CharacterImage": "mira_default",
+                    "BackgroundImage": "cockpit_red",
+                    "NextDialog": "greeting"
                 }
             ]
         },
         {
-            "id": "iris_reply",
-            "lines": [
+            "Id": "greeting",
+            "Lines": [
                 {
-                    "speaker": "Ирис",
-                    "text": "Ты уверена, что он взлетит? Этот хлам сто лет ржавел в снегу.",
-                    "characterImage": "iris_default",
-                    "backgroundImage": "camp_night",
-                    "nextDialog": "alex_reply"
-                }
-            ]
-        },
-        {
-            "id": "alex_reply",
-            "lines": [
-                {
-                    "speaker": "Алекс",
-                    "text": "Двигатель на ручной системе, фильтры сменили. Если повезёт донесёт хотя бы до Пустоши.",
-                    "characterImage": "alex_default",
-                    "backgroundImage": "hangar_dark",
-                    "nextDialog": "ada_entry"
-                }
-            ]
-        },
-        {
-            "id": "ada_entry",
-            "lines": [
-                {
-                    "speaker": "Ада",
-                    "text": "Мы тратим кислород на разговоры. Или летим, или умираем здесь.",
-                    "characterImage": "ada_default",
-                    "backgroundImage": "hangar_dark",
-                    "nextDialog": "decision_launch"
-                }
-            ]
-        },
-        {
-            "id": "decision_launch",
-            "lines": [
-                {
-                    "speaker": "Мира",
-                    "text": "Решаем сейчас. Лететь или ждать следующей метели, чтобы замести следы?",
-                    "characterImage": "mira_default",
-                    "backgroundImage": "hangar_dark",
-                    "options": [
+                    "Speaker": "Aaron",
+                    "Text": "Мы готовы начать миссию. Ты с нами?",
+                    "CharacterImage": "aaron_default",
+                    "BackgroundImage": "cockpit_red",
+                    "Options": [
                         {
-                            "text": "Лететь немедленно",
-                            "nextDialog": "launch_now",
-                            "statChanges": {
-                                "morale": 2,
-                                "risk": 2
-                            }
+                            "Text": "Да, выдвигаемся.",
+                            "NextDialog": "accept_mission"
                         },
                         {
-                            "text": "Ждать укрытия метели",
-                            "nextDialog": "wait_storm",
-                            "statChanges": {
-                                "caution": 1,
-                                "risk": -1
-                            }
+                            "Text": "Мне нужно подумать.",
+                            "NextDialog": "decline_mission"
                         }
                     ]
                 }
             ]
         },
         {
-            "id": "launch_now",
-            "lines": [
+            "Id": "accept_mission",
+            "Lines": [
                 {
-                    "speaker": "Аарон",
-                    "text": "Ха! Вот это по мне. Смерть тоже путь на свободу.",
-                    "characterImage": "aaron_default",
-                    "backgroundImage": "launch_pad",
-                    "nextDialog": "takeoff"
+                    "Speaker": "Mira",
+                    "Text": "Отлично. Прокладываю курс.",
+                    "CharacterImage": "mira_default",
+                    "BackgroundImage": "hangar_dark",
+                    "NextDialog": "launch"
                 }
             ]
         },
         {
-            "id": "wait_storm",
-            "lines": [
+            "Id": "decline_mission",
+            "Lines": [
                 {
-                    "speaker": "Ирис",
-                    "text": "Умно. Пусть метель спрячет наши следы, потом улетим.",
-                    "characterImage": "iris_default",
-                    "backgroundImage": "launch_pad",
-                    "nextDialog": "takeoff"
+                    "Speaker": "Aaron",
+                    "Text": "Хорошо. Мы не можем ждать вечно.",
+                    "CharacterImage": "aaron_default",
+                    "BackgroundImage": "hangar_dark"
                 }
             ]
         },
         {
-            "id": "takeoff",
-            "lines": [
+            "Id": "launch",
+            "Lines": [
                 {
-                    "speaker": "Алекс",
-                    "text": "Готовность 87%. Закрываю люк. Все пристегнулись!",
-                    "characterImage": "alex_default",
-                    "backgroundImage": "cockpit_red",
-                    "nextDialog": "launch_event"
+                    "Speaker": "Narrator",
+                    "Text": "Корабль покидает ангар и уходит в гиперпространство.",
+                    "BackgroundImage": "camp_night",
+                    "NextDialog": "arrival"
                 }
             ]
         },
         {
-            "id": "launch_event",
-            "lines": [
+            "Id": "arrival",
+            "Lines": [
                 {
-                    "speaker": "Система",
-                    "text": "[ТРЕВОГА] Обнаружено движение дронов A.V.E.L. Подготовка к аварийному взлёту.",
-                    //"characterImage": "system_alert",
-                    "characterImage": "alex_default",
-                    "backgroundImage": "cockpit_red",
-                    "nextDialog": "crash_sequence"
+                    "Speaker": "Mira",
+                    "Text": "Мы прибыли. Сканирую местность.",
+                    "CharacterImage": "mira_default",
+                    "BackgroundImage": "camp_night",
+                    "NextDialog": "scan_results"
                 }
             ]
         },
         {
-            "id": "crash_sequence",
-            "lines": [
+            "Id": "scan_results",
+            "Lines": [
                 {
-                    "speaker": "Мира",
-                    "text": "Курс сбит! Мы теряем управление! Все держитесь!",
-                    "characterImage": "mira_default",
-                    "backgroundImage": "cockpit_red",
-                    "nextDialog": "crash"
+                    "Speaker": "Aaron",
+                    "Text": "Здесь кто-то был... и это недавно.",
+                    "CharacterImage": "aaron_default",
+                    "BackgroundImage": "camp_night",
+                    "NextDialog": "decision"
+                }
+            ]
+        },
+        {
+            "Id": "decision",
+            "Lines": [
+                {
+                    "Speaker": "Mira",
+                    "Text": "Что будем делать дальше?",
+                    "CharacterImage": "mira_default",
+                    "BackgroundImage": "camp_night",
+                    "Options": [
+                        {
+                            "Text": "Исследовать территорию.",
+                            "NextDialog": "explore"
+                        },
+                        {
+                            "Text": "Улететь обратно.",
+                            "NextDialog": "retreat"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "Id": "explore",
+            "Lines": [
+                {
+                    "Speaker": "Narrator",
+                    "Text": "Вы углубляетесь в темный лес...",
+                    "BackgroundImage": "camp_night"
+                }
+            ]
+        },
+        {
+            "Id": "retreat",
+            "Lines": [
+                {
+                    "Speaker": "Aaron",
+                    "Text": "Пожалуй, так безопаснее. Возвращаемся.",
+                    "CharacterImage": "aaron_default",
+                    "BackgroundImage": "cockpit_red"
                 }
             ]
         }
-        /*{
-            "id": "crash",
-            "lines": [
-                {
-                    "speaker": "Описание",
-                    "text": "*Шум, огонь, вибрация. Корабль падает в белую пустоту.*",
-                    "characterImage": null,
-                    "backgroundImage": "whiteout",
-                    "nextDialog": "awakening"
-                }
-            ]
-        },
-        {
-            "id": "awakening",
-            "lines": [
-                {
-                    "speaker": "Ада",
-                    "text": "Вы слышите?.. Сканер ловит искусственную атмосферу. Мы не в пустоши.",
-                    "characterImage": "ada_alert",
-                    "backgroundImage": "strange_sky",
-                    "nextDialog": "system_voice"
-                }
-            ]
-        },
-        {
-            "id": "system_voice",
-            "lines": [
-                {
-                    "speaker": "ОЛОН",
-                    "text": "Добро пожаловать в автономную климат-зону №049. Пожалуйста, пройдите инициализацию.",
-                    "characterImage": "olon_interface",
-                    "backgroundImage": "biosphere_dome",
-                    "nextDialog": "end"
-                }
-            ]
-        },
-        {
-            "id": "end",
-            "lines": [
-                {
-                    "text": "(Пролог завершён. Начинается глава I: Исследование купола.)",
-                    "nextDialog": null
-                }
-            ]
-        }*/
     ]
 }
