@@ -1,23 +1,29 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
+
+//using System.Reflection.Metadata;
 using The_Island.Core;
-using The_Island.Core.DialogSystem;
 using The_Island.UI;
-using static System.Formats.Asn1.AsnWriter;
+using The_Island.UI.Elements;
+//using static System.Formats.Asn1.AsnWriter;
 
 namespace The_Island.Scenes
 {
     public class DialogScene : IScene
     {
-
+        
         private SpriteFont dialogFont;
+        //текстбокс
         private TextBox textBox;
         private Texture2D textboxTexture;
+        //кнопки
+        Button button;
         // Используем словарь для хранения персонажей
         private Dictionary<string, Character> characters = new();
         //// Используем словарь для хранения фонов
@@ -33,7 +39,9 @@ namespace The_Island.Scenes
             Console.WriteLine("Инициализация диалоговой сцены...");
             dialogFont = content.Load<SpriteFont>("Fonts/Font");
             textboxTexture = content.Load<Texture2D>("Images/UI/textBox");
-
+            //подгружаем звук для кнопок и устанавливаем шрифт
+            Button.ClickSound = content.Load<SoundEffect>("Sounds/click");
+            Button.font = dialogFont;
             // Создаём персонажей и добавляем их в словарь
             characters.Add("mira_default", new Character("Mira", content.Load<Texture2D>("Images/Characters/mira_default"), new Vector2(100, 100)));
             characters.Add("aaron_default", new Character("Aaron", content.Load<Texture2D>("Images/Characters/aaron_default"), new Vector2(200, 200))); // Пример второго персонажа

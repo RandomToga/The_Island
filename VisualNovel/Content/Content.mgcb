@@ -164,3 +164,9 @@
 /processorParam:TextureFormat=Color
 /build:Images/UI/textBox.png
 
+#begin Sounds/click.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/click.wav
+
