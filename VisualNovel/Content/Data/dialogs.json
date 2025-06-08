@@ -1,137 +1,131 @@
-﻿{
-    "Dialogs": [
-        {
-            "Id": "start",
-            "Lines": [
-                {
-                    "Speaker": "Mira",
-                    "Text": "Добро пожаловать на корабль, пилот.",
-                    "CharacterImage": "mira_default",
-                    "BackgroundImage": "cockpit_red",
-                    "NextDialog": "greeting"
-                }
-            ]
-        },
-        {
-            "Id": "greeting",
-            "Lines": [
-                {
-                    "Speaker": "Aaron",
-                    "Text": "Мы готовы начать миссию. Ты с нами?",
-                    "CharacterImage": "aaron_default",
-                    "BackgroundImage": "cockpit_red",
-                    "Options": [
-                        {
-                            "Text": "Да, выдвигаемся.",
-                            "NextDialog": "accept_mission"
-                        },
-                        {
-                            "Text": "Мне нужно подумать.",
-                            "NextDialog": "decline_mission"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Id": "accept_mission",
-            "Lines": [
-                {
-                    "Speaker": "Mira",
-                    "Text": "Отлично. Прокладываю курс.",
-                    "CharacterImage": "mira_default",
-                    "BackgroundImage": "hangar_dark",
-                    "NextDialog": "launch"
-                }
-            ]
-        },
-        {
-            "Id": "decline_mission",
-            "Lines": [
-                {
-                    "Speaker": "Aaron",
-                    "Text": "Хорошо. Мы не можем ждать вечно.",
-                    "CharacterImage": "aaron_default",
-                    "BackgroundImage": "hangar_dark"
-                }
-            ]
-        },
-        {
-            "Id": "launch",
-            "Lines": [
-                {
-                    "Speaker": "Narrator",
-                    "Text": "Корабль покидает ангар и уходит в гиперпространство.",
-                    "BackgroundImage": "camp_night",
-                    "NextDialog": "arrival"
-                }
-            ]
-        },
-        {
-            "Id": "arrival",
-            "Lines": [
-                {
-                    "Speaker": "Mira",
-                    "Text": "Мы прибыли. Сканирую местность.",
-                    "CharacterImage": "mira_default",
-                    "BackgroundImage": "camp_night",
-                    "NextDialog": "scan_results"
-                }
-            ]
-        },
-        {
-            "Id": "scan_results",
-            "Lines": [
-                {
-                    "Speaker": "Aaron",
-                    "Text": "Здесь кто-то был... и это недавно.",
-                    "CharacterImage": "aaron_default",
-                    "BackgroundImage": "camp_night",
-                    "NextDialog": "decision"
-                }
-            ]
-        },
-        {
-            "Id": "decision",
-            "Lines": [
-                {
-                    "Speaker": "Mira",
-                    "Text": "Что будем делать дальше?",
-                    "CharacterImage": "mira_default",
-                    "BackgroundImage": "camp_night",
-                    "Options": [
-                        {
-                            "Text": "Исследовать территорию.",
-                            "NextDialog": "explore"
-                        },
-                        {
-                            "Text": "Улететь обратно.",
-                            "NextDialog": "retreat"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "Id": "explore",
-            "Lines": [
-                {
-                    "Speaker": "Narrator",
-                    "Text": "Вы углубляетесь в темный лес...",
-                    "BackgroundImage": "camp_night"
-                }
-            ]
-        },
-        {
-            "Id": "retreat",
-            "Lines": [
-                {
-                    "Speaker": "Aaron",
-                    "Text": "Пожалуй, так безопаснее. Возвращаемся.",
-                    "CharacterImage": "aaron_default",
-                    "BackgroundImage": "cockpit_red"
-                }
-            ]
-        }
-    ]
-}
+﻿[
+    {
+        "Id": "start",
+        "Speaker": "...",
+        "Text": "90 лет войны. 90 лет крови, копоти и ненависти.",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "1"
+    },
+    {
+        "Id": "1",
+        "Speaker": "...",
+        "Text": "Когда-то здесь был мир. Были границы, флаги, законы. Потом грянули огненные бури, и государства пали, рассыпавшись в радиоактивный пепел...",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "2"
+    },
+    {
+        "Id": "2",
+        "Speaker": "...",
+        "Text": "Из руин старого мира поднялось новое A.V.E.L., корпорация-государство, воздвигшая свои купола над последними островками жизни.",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "3"
+    },
+    {
+        "Id": "3",
+        "Speaker": "...",
+        "Text": "Пятьдесят городов-ковчегов. Пятьдесят хрустальных утроб, взращивающих новое человечество. А снаружи?",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "4"
+    },
+    {
+        "Id": "4",
+        "Speaker": "...",
+        "Text": "Пустошь.",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "5"
+    },
+    {
+        "Id": "5",
+        "Speaker": "...",
+        "Text": "Выжженные равнины, заражённые реки, ржавые руины. Люди? Те, кого A.V.E.L. назвал пустыми. Те, кому не хватило места под куполом. Те, кто выживает среди руин, глотая радиацию вместо воды...",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "6"
+    },
+    {
+        "Id": "6",
+        "Speaker": "...",
+        "Text": "И потому идёт война, не за территории, не за власть. За право дышать. За право увидеть завтрашний день без боли. Сколько ещё продержится этот мир прежде чем падёт последний купол?",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "7"
+    },
+    {
+        "Id": "7",
+        "Speaker": "...",
+        "Text": "2147 год. Территория города Тикси. Лагерь военнопленных.",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "8"
+    },
+    {
+        "Id": "8",
+        "Speaker": "...",
+        "Text": "Я стою на крыше здания обеспечения электропитания и смотрю на этот мёртвый пейзаж.",
+        "CharacterImage": "mira_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "9"
+    },
+    {
+        "Id": "9",
+        "Speaker": "Аарон",
+        "Text": "Ты где? Отвечай.",
+        "CharacterImage": "aaron_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "10"
+    },
+    {
+        "Id": "10",
+        "Speaker": "Мира",
+        "Text": "Ещё в пути. Отключу питание через 3 минуты. Ждите.",
+        "CharacterImage": "mira_default",
+        "BackgroundImage": "camp_night",
+        "NextDialog": "11"
+    },
+    {
+        "Id": "11",
+        "Speaker": "...",
+        "Text": "2 минуты... Я наконец сломала этот замок в электробудку.",
+        "CharacterImage": "mira_default",
+        "BackgroundImage": "hangar_dark",
+        "NextDialog": "12"
+    },
+    {
+        "Id": "12",
+        "Speaker": "...",
+        "Text": "Осталось перерезать этот провод.",
+        "CharacterImage": "mira_default",
+        "BackgroundImage": "hangar_dark",
+        "Options": [
+            {
+                "Text": "Перерезать провод",
+                "NextDialog": "13_1"
+            },
+            {
+                "Text": "Подумать ещё",
+                "NextDialog": "13_2"
+            }
+        ]
+    },
+    {
+        "Id": "13_1",
+        "Speaker": "...",
+        "Text": "Вокруг стало темно. 30 секунд до рева сирен.",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "hangar_dark",
+        "NextDialog": "14"
+    },
+    {
+        "Id": "13_2",
+        "Speaker": "...",
+        "Text": "В провод прилетела пуля от одного из потерявших управление дронов. Свет погас...",
+        "CharacterImage": "author_default",
+        "BackgroundImage": "hangar_dark",
+        "NextDialog": "14"
+    }
+]

@@ -29,13 +29,9 @@ namespace The_Island
             //Content — встроенное свойство Game, представляет ContentManager — менеджер ресурсов
             IsMouseVisible = true; //показывать курсор мыши в игре
         }
-        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-        static extern bool AllocConsole();
 
         protected override void Initialize()
         {
-            AllocConsole(); // Добавляем консольное окно
-            Console.WriteLine("Консоль инициализирована.");
             sceneManager = new SceneManager(); // Создаём менеджер сцен
 
             _dialogScene = new DialogScene(); // Создаём сцену
@@ -49,8 +45,8 @@ namespace The_Island
         protected override void LoadContent() //Вызывается один раз для загрузки всех ресурсов
         //Внутри используется ContentManager.Load<T>() — загружает.xnb файлы
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice); //// Создаём "кисть" для рисования
-            _dialogScene.Load(Content); //// Загружаем текстуры и шрифты
+            _spriteBatch = new SpriteBatch(GraphicsDevice); // Создаём "кисть" для рисования
+            _dialogScene.Load(Content, GraphicsDevice); // Загружаем текстуры и шрифты
         }
 
         protected override void Update(GameTime gameTime) //Этот Update вызывается системой MonoGame каждый кадр. Вызывает логику сцены.

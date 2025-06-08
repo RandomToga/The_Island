@@ -5,36 +5,32 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
-
-//using System.Reflection.Metadata;
 using The_Island.Core;
 using The_Island.UI;
 using The_Island.UI.Elements;
-//using static System.Formats.Asn1.AsnWriter;
 
 namespace The_Island.Scenes
 {
     public class DialogScene : IScene
     {
-        
+
         private SpriteFont dialogFont;
         //текстбокс
         private TextBox textBox;
         private Texture2D textboxTexture;
-        //кнопки
-        Button button;
         // Используем словарь для хранения персонажей
         private Dictionary<string, Character> characters = new();
-        //// Используем словарь для хранения фонов
+        // Используем словарь для хранения фонов
         private Dictionary<string, Texture2D> backgrounds = new();
         private Texture2D currentBackground;
 
 
-        private DialogManager dialogManager;
-        private KeyboardState previousKeyboard;
 
-        public void Load(ContentManager content)
+        private DialogManager dialogManager;
+        private KeyboardState prevKeyboard;
+        private MouseState prevMouse;
+
+        public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
             Console.WriteLine("Инициализация диалоговой сцены...");
             dialogFont = content.Load<SpriteFont>("Fonts/Font");
@@ -43,8 +39,13 @@ namespace The_Island.Scenes
             Button.ClickSound = content.Load<SoundEffect>("Sounds/click");
             Button.font = dialogFont;
             // Создаём персонажей и добавляем их в словарь
-            characters.Add("mira_default", new Character("Mira", content.Load<Texture2D>("Images/Characters/mira_default"), new Vector2(100, 100)));
-            characters.Add("aaron_default", new Character("Aaron", content.Load<Texture2D>("Images/Characters/aaron_default"), new Vector2(200, 200))); // Пример второго персонажа
+            characters.Add("mira_default", new Character("Mira", content.Load<Texture2D>("Images/Characters/mira_default"), Vector2.Zero));
+            characters.Add("aaron_default", new Character("Aaron", content.Load<Texture2D>("Images/Characters/aaron_default"), new Vector2(200, 200)));
+            characters.Add("ada_default", new Character("Ada", content.Load<Texture2D>("Images/Characters/ada_default"), new Vector2(150, 150)));
+            characters.Add("alex_default", new Character("Alex", content.Load<Texture2D>("Images/Characters/alex_default"), new Vector2(180, 180)));
+            characters.Add("iris_default", new Character("Iris", content.Load<Texture2D>("Images/Characters/iris_default"), new Vector2(170, 170)));
+            characters.Add("author_default", new Character("...", content.Load<Texture2D>("Images/Characters/author_default"), new Vector2(100, 100)));
+
             // подгружаем фоны
             backgrounds.Add("cockpit_red", content.Load<Texture2D>("Images/Backgrounds/cockpit_red"));
             backgrounds.Add("camp_night", content.Load<Texture2D>("Images/Backgrounds/camp_night"));
@@ -63,13 +64,13 @@ namespace The_Island.Scenes
             UpdateBackground();
 
             // Создаём TextBox
-            var textboxPos = new Vector2(50, 500);
-            textBox = new TextBox(textboxTexture, dialogFont, textboxPos)
-            {
-                Scale = 1f,
-                TextColor = Color.White
-            };
+
+            Vector2 fixedTextBoxPosition = new Vector2(100, 800);
+
+            textBox = new TextBox(textboxTexture, dialogFont, fixedTextBoxPosition);
+
         }
+        //метод для обновления заднего фона
         private void UpdateBackground()
         {
             var currentLine = dialogManager.GetCurrentLine();
@@ -79,38 +80,44 @@ namespace The_Island.Scenes
                     currentBackground = backgrounds[currentLine.BackgroundImage];
             }
         }
+
         public void Update(GameTime gameTime)
         {
-            var state = Keyboard.GetState();
+            // Получаем текущее состояние мыши и клавиатуры
+            var mouseState = Mouse.GetState();
+            var keyboardState = Keyboard.GetState();
 
+            // Получаем текущую строку диалога
+            var currentLine = dialogManager.GetCurrentLine();
 
-            // Обработка выбора
-            var line = dialogManager.GetCurrentLine();
-            if (line != null && line.Options != null)
+            // Обновляем задний фон (если есть анимации или логика)
+            UpdateBackground();
+
+            // Обработка клика по вариантам ответа, если они есть
+            if (currentLine?.Options != null && currentLine.Options.Count > 0)
             {
-                for (int i = 0; i < line.Options.Count; i++)
-                {
-                    Keys key = Keys.D1 + i;
-                    if (state.IsKeyDown(key) && previousKeyboard.IsKeyUp(key))
-                    {
-                        dialogManager.SelectOption(i);
-                        UpdateBackground();
-                    }
-                }
+                textBox.HandleInput(mouseState, currentLine, dialogManager);
             }
-            if (state.IsKeyDown(Keys.Space) && previousKeyboard.IsKeyUp(Keys.Space))
+            // Если нет вариантов – переходим к следующей строке по одиночному нажатию пробела или клику мыши
+            else if ((keyboardState.IsKeyDown(Keys.Space) && prevKeyboard.IsKeyUp(Keys.Space)) ||
+                     (mouseState.LeftButton == ButtonState.Pressed && prevMouse.LeftButton == ButtonState.Released))
             {
                 dialogManager.NextLine();
-                UpdateBackground();
             }
 
-            previousKeyboard = state;
+            // Сохраняем предыдущее состояние мыши и клавиатуры
+            prevMouse = mouseState;
+            prevKeyboard = keyboardState;
         }
+
+
+
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            var current = dialogManager.GetCurrentLine();
-            if (current == null)
+            // Получаем текущую строку диалога
+            var currentLine = dialogManager.GetCurrentLine();
+            if (currentLine == null)
                 return; // Нет текущей строки — выходим, чтобы не рисовать ничего
 
             //Чтобы масштабировать изображение, нужно использовать перегрузку Draw, в которой можно указать scale
@@ -121,11 +128,11 @@ namespace The_Island.Scenes
             spriteBatch.Draw(currentBackground, bgPos, null, Color.White, 0f, Vector2.Zero, bgScale, SpriteEffects.None, 0f);
 
             // Проверяем, есть ли персонаж в словаре по имени
-            if (!string.IsNullOrEmpty(current.CharacterImage))
+            if (!string.IsNullOrEmpty(currentLine.CharacterImage))
             {
-                if (characters.ContainsKey(current.CharacterImage))
+                if (characters.ContainsKey(currentLine.CharacterImage))
                 {
-                    var character = characters[current.CharacterImage];
+                    var character = characters[currentLine.CharacterImage];
                     float scale = 0.7f;
                     float charPosX = ScreenUtils.CenterX(character.Image, spriteBatch.GraphicsDevice, scale);
                     float charPosY = spriteBatch.GraphicsDevice.Viewport.Height - character.Image.Height * scale;
@@ -134,30 +141,27 @@ namespace The_Island.Scenes
                 }
             }
 
-            // Диалог
-            if (current != null)
+            
+
+            if (currentLine != null)
             {
-                // Устанавливаем текст для текстбокса
-                textBox.Text = dialogManager.GetCurrentLine().Text;
-                textBox.Character = dialogManager.GetCurrentLine().Speaker;
+                // Устанавливаем текст и имя персонажа для текстбокса
+                textBox.Text = currentLine.Text;
+                textBox.Character = currentLine.Speaker;
 
-                // Центрируем текстбокс по нижнему краю экрана
-                textBox.CenterBottom(spriteBatch.GraphicsDevice);
-
-                // Рисуем текстбокс
+                // Отрисовка самого текстбокса
                 textBox.Draw(spriteBatch);
-                // Рисуем выборы (если есть)
-                if (current.Options != null)
+
+                // Отрисовка вариантов выбора (если они есть)
+                if (currentLine.Options != null && currentLine.Options.Count > 0)
                 {
-                    for (int i = 0; i < current.Options.Count; i++)
-                    {
-                        string text = $">>{current.Options[i].Text}";
-                        Vector2 pos = textBox.textPos() + new Vector2(20, 50 + i * 30);
-                        spriteBatch.DrawString(dialogFont, text, pos, Color.Yellow);
-                    }
+                    int screenCenterX = spriteBatch.GraphicsDevice.Viewport.Width / 2;
+                    int textStartY = (int)textBox.Position.Y + 180;
+
+                    textBox.DrawOptions(spriteBatch, currentLine, dialogManager, screenCenterX, textStartY);
                 }
             }
-        }
 
+        }
     }
 }
