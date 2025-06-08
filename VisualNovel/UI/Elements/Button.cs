@@ -39,7 +39,7 @@ namespace The_Island.UI.Elements
             else
             {
                 Vector2 textsize = font.MeasureString(text); //размер текста
-                size = new Rectangle((int)position.X, (int)position.Y, (int)size.X + 10, (int)size.Y + 5);
+                size = new Rectangle((int)position.X, (int)position.Y, (int)textsize.X + 10, (int)textsize.Y + 5);
             }
         }
 

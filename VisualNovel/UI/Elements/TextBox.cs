@@ -1,55 +1,129 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using The_Island.Core;
 
 namespace The_Island.UI
 {
     public class TextBox
     {
-        private Texture2D _textbox;
+        private Texture2D _background;
         private SpriteFont _font;
+        private MouseState _prevMouseState;
+
+        private List<Rectangle> _optionButtons = new();
+        private List<int> _visibleOptionIndices = new();
+
+        private const int lineHeight = 35;
+        private readonly Vector2 _textOffset = new(300, 120);
+        private readonly Vector2 _padding = new(25, -55); // фиксированный отступ для имени персонажа
+        private const float Scale = 1.1f; // фиксированный масштаб
 
         public Vector2 Position { get; set; }
-        public float Scale { get; set; } = 1f;
         public string Text { get; set; } = "";
         public string Character { get; set; } = "";
-        public Color TextColor { get; set; } = Color.Black;
-        public Vector2 Padding { get; set; } = new Vector2(55, -55); //for character name
+        public Color TextColor { get; } = Color.White; // только геттер, цвет фиксирован
 
-        // Конструктор
         public TextBox(Texture2D background, SpriteFont font, Vector2 position)
         {
-            _textbox = background;
+            _background = background;
             _font = font;
             Position = position;
         }
 
-        public Vector2 textPos()
+        // Метод для разделения текста на строки по ширине
+        private List<string> WrapText(SpriteFont font, string text)
         {
-            return new Vector2(Position.X + 200, Position.Y + 120);
+            float maxLineWidth = 1200f;
+            var words = text.Split(' ');
+            var lines = new List<string>();
+            var currentLine = "";
+
+            foreach (var word in words)
+            {
+                string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                float lineWidth = font.MeasureString(testLine).X;
+
+                if (lineWidth > maxLineWidth)
+                {
+                    if (!string.IsNullOrEmpty(currentLine))
+                        lines.Add(currentLine);
+
+                    currentLine = word; // начать новую строку
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
+                lines.Add(currentLine);
+
+            return lines;
         }
-        // Метод для отрисовки текстбокса
+
         public void Draw(SpriteBatch spriteBatch)
         {
-            // Отрисовка текстбокса
-            spriteBatch.Draw(_textbox, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
-            // Отрисовка имени персонажа
-            spriteBatch.DrawString(_font, Character, textPos()+ Padding, TextColor);
-            // Отрисовка текста 
-            spriteBatch.DrawString(_font, Text, textPos(), TextColor);
+            spriteBatch.Draw(_background, Position, null, Color.White, 0f, Vector2.Zero, Scale, SpriteEffects.None, 0f);
+
+            spriteBatch.DrawString(_font, Character, Position + _textOffset + _padding, TextColor);
+
+            var wrappedLines = WrapText(_font, Text);
+
+            Vector2 startPos = Position + _textOffset;
+
+            for (int i = 0; i < wrappedLines.Count; i++)
+            {
+                Vector2 linePos = new(startPos.X, startPos.Y + i * lineHeight);
+                spriteBatch.DrawString(_font, wrappedLines[i], linePos, TextColor);
+            }
         }
-        // Метод для получения размеров текстбокса с учетом масштаба
-        public Vector2 GetSize()
+
+        public void DrawOptions(SpriteBatch spriteBatch, DialogLineData currentLine, DialogManager dialogManager, int centerX, int textStartY)
         {
-            return new Vector2(_textbox.Width * Scale, _textbox.Height * Scale);
+            _optionButtons.Clear();
+            _visibleOptionIndices.Clear();
+
+            if (currentLine?.Options == null || currentLine.Options.Count == 0)
+                return;
+
+            for (int i = 0; i < currentLine.Options.Count; i++)
+            {
+                var option = currentLine.Options[i];
+                var optionText = $"{i + 1}. {option.Text}";
+                var optionSize = _font.MeasureString(optionText);
+
+                float optionX = centerX - optionSize.X / 2;
+                float optionY = textStartY + 20 + i * (lineHeight + 5);
+
+                var optionRect = new Rectangle((int)optionX, (int)optionY, (int)optionSize.X, (int)optionSize.Y);
+                _optionButtons.Add(optionRect);
+                _visibleOptionIndices.Add(i);
+
+                spriteBatch.DrawString(_font, optionText, new Vector2(optionX, optionY), Color.White);
+            }
         }
-        // Метод для центрации текстбокса по нижней части экрана
-        public void CenterBottom(GraphicsDevice graphicsDevice)
+
+        public void HandleInput(MouseState mouseState, DialogLineData currentLine, DialogManager dialogManager)
         {
-            float screenWidth = graphicsDevice.Viewport.Width;
-            float textboxWidth = GetSize().X;
-            float screenHeight = graphicsDevice.Viewport.Height;
-            float textboxHeight = GetSize().Y;
-            Position = new Vector2((screenWidth - textboxWidth) / 2, screenHeight - textboxHeight - Padding.Y * Scale);
+            if (currentLine?.Options == null || currentLine.Options.Count == 0)
+                return;
+
+            if (mouseState.LeftButton == ButtonState.Pressed && _prevMouseState.LeftButton == ButtonState.Released)
+            {
+                for (int i = 0; i < _optionButtons.Count; i++)
+                {
+                    if (_optionButtons[i].Contains(mouseState.Position))
+                    {
+                        dialogManager.SelectOption(_visibleOptionIndices[i]);
+                        break;
+                    }
+                }
+            }
+
+            _prevMouseState = mouseState;
         }
     }
 }
